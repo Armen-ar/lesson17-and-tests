@@ -11,8 +11,9 @@
 #    }
 
 # Исходный код
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from marshmallow import Schema, fields
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -30,9 +31,12 @@ class Book(db.Model):
     year = db.Column(db.Integer)
 
 
-class BookSchema:
-    # TODO определите здесь схему сериализации
-    pass
+class BookSchema(Schema):
+    id = fields.Int(dump_only=True)
+    name = fields.Str()
+    author = fields.Str()
+    year = fields.Int()
+
 
 # С помощью данного отрезка кода мы создаём
 # таблицу во временной базе данных и добавляем
@@ -46,9 +50,14 @@ b2 = Book(id=2, name="Граф Монте Кристо", author="Алексан�
 with db.session.begin():
     db.session.add_all([b1, b2])
 
+
 # ######
 
-# TODO напишите роут здесь
+@app.route("/books/")
+def get_books():
+    books = Book.query.all()
+    book_schema = BookSchema(many=True).dump(books)
+    return jsonify(book_schema)
 
 
 # чтобы проверить результат работы

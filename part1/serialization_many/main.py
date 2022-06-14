@@ -22,6 +22,9 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import json
+
+from marshmallow import fields, Schema
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -48,15 +51,19 @@ with db.session.begin():
     db.session.add_all(roles)
 
 
-class RoleSchema:
-    # TODO напишите схему здесь
-    pass
+class RoleSchema(Schema):
+    id = fields.Int(dump_only=True)
+    name = fields.Str()
 
 
 def serialize():
-    # TODO напишите сериализацию здесь
-    pass
+    role_schema = RoleSchema(many=True)
+    return role_schema.dump(roles)
 
 
 if __name__ == "__main__":
     print(json.dumps(serialize(), indent=2))
+
+# user_schema = UserSchema(many=True)  # many несколько
+#
+# print(user_schema.dump([u1, u2, u3, u4, u5]))
