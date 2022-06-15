@@ -21,16 +21,14 @@
 # - С помощью DELETE-запроса на адрес `/notes/1`
 #   удалить данные о сущности с соответсвующим id
 
-from flask import Flask
-from flask_restx import Api
+from flask import Flask, request
+from flask_restx import Api, Resource
 from pprint import pprint
 
 app = Flask(__name__)
 
 api = Api(app)
-
-api = # TODO допишите код
-note_ns = # TODO допишите код
+note_ns = api.namespace('notes')
 
 notes = {
     1: {
@@ -45,22 +43,46 @@ notes = {
     }
 }
 
-# TODO Допишите Class Based View здесь
-# @ 
-# class ...
-#     def put(self, uid):
-#         pass
 
-#     def patch(self, uid):
-#         pass
+@note_ns.route('/<int:uid>')
+class NotesView(Resource):
+    def put(self, uid):
+        if uid not in notes:
+            return "Нет такой заметки", 404
+        else:
+            req_json = request.json
+            note = notes[uid]
+            note["text"] = req_json.get("text")
+            note["author"] = req_json.get("author")
+            notes[uid] = note
 
-#     def delete(self, uid):
-#         pass
+            return '', 204
+
+    def patch(self, uid):
+        if uid not in notes:
+            return "Нет такой заметки", 404
+        else:
+            req_json = request.json
+            note = notes[uid]
+            if "text" in req_json:
+                note["text"] = req_json.get("text")
+            if "author" in req_json:
+                note["author"] = req_json.get("author")
+
+            notes[uid] = note
+            return "", 204
+
+    def delete(self, uid):
+        if uid not in notes:
+            return "Нет такой заметки", 404
+        else:
+            del notes[uid]
+            return "", 204
 
 
 # # # # # # # # # # # #                                    
 if __name__ == '__main__':
-    client = app.test_client()                          # TODO вы можете раскомментировать
+    client = app.test_client()  # TODO вы можете раскомментировать
     # response = client.put('/notes/1', json=PUT)       # соответсвующе функции и
     # response = client.patch('/notes/1', json=PATCH)   # воспользоваться ими для самопроверки
     # response = client.delete('/notes/1')              # аналогично заданию `post`

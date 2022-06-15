@@ -7,7 +7,7 @@
 #
 
 from flask import Flask
-from flask_restx import Api
+from flask_restx import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import Schema, fields
 
@@ -49,7 +49,12 @@ with db.session.begin():
     db.session.add_all([b1, b2])
 
 
-# TODO напишите Class Based View здесь
+@book_ns.route('/')
+class BooksView(Resource):
+    def get(self):  # ПОЛУЧЕНИЕ ДАННЫХ
+        all_books = db.session.query(Book).all()
+
+        return books_schema.dump(all_books), 200
 
 
 # для проверки работоспособности запустите фаил

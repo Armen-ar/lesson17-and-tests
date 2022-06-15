@@ -30,7 +30,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 api = Api(app)
-note_ns = # TODO допишите код
+note_ns = api.namespace('notes')
 
 
 class Note(db.Model):
@@ -59,17 +59,45 @@ with db.session.begin():
     db.session.add_all([n1, n2])
 
 
-# TODO Допишите Class Based View здесь
-# @ 
-# class ...
-#     def put(self, uid):
-#         pass
+@note_ns.route('/<int:uid>')
+class NoteView(Resource):
+    def put(self, uid: int):
+        note = Note.query.get(uid)
+        if not note:
+            return "", 404
+        req_json = request.json
+        note.text = req_json.get("text")
+        note.author = req_json.get("author")
 
-#     def patch(self, uid):
-#         pass
+        db.session.add(note)
+        db.session.commit()
 
-#     def delete(self, uid):
-#         pass
+        return "", 204
+
+    def patch(self, uid: int):
+        note = Note.query.get(uid)
+        if not note:
+            return "", 404
+        req_json = request.json
+        if "text" in req_json:
+            note.text = req_json.get("text")
+        if "author" in req_json:
+            note.author = req_json.get("author")
+
+        db.session.add(note)
+        db.session.commit()
+
+        return "", 204
+
+    def delete(self, uid: int):
+        note = Note.query.get(uid)
+        if not note:
+            return "", 404
+
+        db.session.delete(note)
+        db.session.commit()
+
+        return "", 204
 
 
 # # # # # # # # # # # #
